@@ -3,10 +3,10 @@
 A Discord Rich Presence client that shows what you're watching on Jellyfin or listening to on Audiobookshelf — with cover art, timestamps, and chapter tracking.
 
 <p align="center">
-  <img src="screenshots/preview.png" width="45%" alt="RPC Preview Video">
-  &nbsp;
-  <img src="screenshots/preview2.png" width="45%" alt="RPC Preview Audio">
-  &nbsp;
+  <img src="screenshots/preview.png" width="90%" alt="RPC Preview Video">
+</p>
+<p align="center">
+  <img src="screenshots/preview2.png" width="90%" alt="RPC Preview Audio">
 </p>
 
 <div align="center">
