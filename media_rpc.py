@@ -251,7 +251,6 @@ def fetch_jellyfin():
                     anc_url = f"{base_url}/Items/{item_id}/Ancestors"
                     parents_resp = requests.get(
                         anc_url, 
-                        params={"userId": user_id}, 
                         headers={"X-Emby-Token": JELLYFIN_API_KEY}, 
                         timeout=2
                     )
@@ -294,11 +293,16 @@ def fetch_jellyfin():
                 small_icon = "https://raw.githubusercontent.com/MakD/AFinity/refs/heads/master/screenshots/Logo/ic_launcher_round_mdpi.webp"
             case "Streamyfin":
                 small_icon = "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/webp/streamyfin.webp"
+            case "Jellify":
+                small_icon = "https://i.ibb.co/zVCxQFJN/jellify.png"
             case _:
                     # default to jf
                 small_icon = "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/webp/jellyfin.webp"
+        discord_type = 3
+        if item.get('Type') == 'Audio':
+            discord_type = 2
         return {
-            "type": 3,
+            "type": discord_type,
             "details": title,
             "state": state_text,
             "start": int(time.time() - prog),
