@@ -17,7 +17,7 @@ JELLYFIN_SERVER = os.getenv("JELLYFIN_SERVER")
 JELLYFIN_API_KEY = os.getenv("JELLYFIN_API_KEY")
 JELLYFIN_USER_ID = os.getenv("JELLYFIN_USER_ID")
 #JELLYFIN_IGNORE_LIBRARIES = ["Bollywood", "Tollywood"] # Sample blacklist to hide certain libraries from showing up in RPC.
-JELLYFIN_IGNORE_LIBRARIES = ["Youtube", "Youtube Backups"]
+JELLYFIN_IGNORE_LIBRARIES = []
 TMDB_API_KEY = os.getenv("TMDB_API_KEY")
 
 # 2. Audiobookshelf Config
@@ -240,7 +240,7 @@ def fetch_jellyfin():
         item = session["NowPlayingItem"]
         title = item.get('Name')
         if JELLYFIN_IGNORE_LIBRARIES:
-            artist_name = "Oakgrove"
+            artist_name = "StreamNode" # can be changed
             item_id = item.get("Id")
             if item.get("SeriesId"):
                 item_id = item.get("SeriesId")
@@ -293,7 +293,7 @@ def fetch_jellyfin():
         dur = item.get("RunTimeTicks", 0) / 10000000
         year = item.get('ProductionYear')
         series = item.get('SeriesName')
-        state_text = f"{series} ({year})" if series else f"{year}" # You should replace "StreamNode" with your own branding or remove it entirely if you prefer a cleaner look.
+        state_text = f"{series} ({year})" if series else f"{year} • StreamNode" # You should replace "StreamNode" with your own branding or remove it entirely if you prefer a cleaner look.
         
         # Logic to get client icon in the little area in discord activity details
         client = session.get("Client")
@@ -406,7 +406,7 @@ def fetch_abs():
 
         start_ts = int(now - current_time)
         end_ts = int(start_ts + dur)
-        abs_state_text = f"{display_author}" # You should replace "AudioNode" with your own branding or remove it entirely if you prefer a cleaner look.
+        abs_state_text = f"{display_author} • AudioNode" # You should replace "AudioNode" with your own branding or remove it entirely if you prefer a cleaner look.
         # logic for which client icon to show
         client = session["deviceInfo"].get("clientName")
         match client:
