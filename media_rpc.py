@@ -17,7 +17,7 @@ JELLYFIN_SERVER = os.getenv("JELLYFIN_SERVER")
 JELLYFIN_API_KEY = os.getenv("JELLYFIN_API_KEY")
 JELLYFIN_USER_ID = os.getenv("JELLYFIN_USER_ID")
 #JELLYFIN_IGNORE_LIBRARIES = ["Bollywood", "Tollywood"] # Sample blacklist to hide certain libraries from showing up in RPC.
-JELLYFIN_IGNORE_LIBRARIES = []
+JELLYFIN_IGNORE_LIBRARIES = ["Youtube", "Youtube Backups"]
 TMDB_API_KEY = os.getenv("TMDB_API_KEY")
 
 # 2. Audiobookshelf Config
@@ -240,19 +240,28 @@ def fetch_jellyfin():
         item = session["NowPlayingItem"]
         title = item.get('Name')
         if JELLYFIN_IGNORE_LIBRARIES:
+            artist_name = "Oakgrove"
             item_id = item.get("Id")
-            
+            if item.get("SeriesId"):
+                item_id = item.get("SeriesId")
+            if item.get("ArtistItems"):
+                if item.get("ArtistItems")[0].get("Id"):
+                    item_id = item.get("ArtistItems")[0].get("Id")
+                    artist_name = item.get("AlbumArtist") 
             if item_id in library_cache:
+                print("item cached")
                 if not library_cache[item_id]:
                     return None 
             else:
                 try:
+                    print("testing item")
                     user_id = session.get("UserId")
                     anc_url = f"{base_url}/Items/{item_id}/Ancestors"
                     parents_resp = requests.get(
                         anc_url, 
+                        params={"userId": user_id},
                         headers={"X-Emby-Token": JELLYFIN_API_KEY}, 
-                        timeout=2
+                        timeout=9
                     )
                     
                     if parents_resp.status_code == 200:
@@ -284,7 +293,7 @@ def fetch_jellyfin():
         dur = item.get("RunTimeTicks", 0) / 10000000
         year = item.get('ProductionYear')
         series = item.get('SeriesName')
-        state_text = f"{series} ({year})" if series else f"{year} • StreamNode" # You should replace "StreamNode" with your own branding or remove it entirely if you prefer a cleaner look.
+        state_text = f"{series} ({year})" if series else f"{year}" # You should replace "StreamNode" with your own branding or remove it entirely if you prefer a cleaner look.
         
         # Logic to get client icon in the little area in discord activity details
         client = session.get("Client")
@@ -295,6 +304,8 @@ def fetch_jellyfin():
                 small_icon = "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/webp/streamyfin.webp"
             case "Jellify":
                 small_icon = "https://i.ibb.co/zVCxQFJN/jellify.png"
+            case "Pelagica":
+                small_icon = "https://raw.githubusercontent.com/KartoffelChipss/pelagica/refs/heads/main/frontend/public/favicons/web-app-manifest-512x512.png"
             case _:
                     # default to jf
                 small_icon = "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/webp/jellyfin.webp"
@@ -308,10 +319,11 @@ def fetch_jellyfin():
             "start": int(time.time() - prog),
             "end": int(time.time() - prog + dur),
             "cover": get_jellyfin_cover(base_url, item.get("Id"), JELLYFIN_API_KEY, series if series else title, year, item.get('Type')),
-            "text": "StreamNode",
+            "text": artist_name,
             "status": "Playing",
             "client_image": small_icon,
-            "client": client
+            "client": client,
+            "artist": artist_name
         }
     except Exception as e: 
         print(f"[DEBUG] Error: {e}")
@@ -394,7 +406,7 @@ def fetch_abs():
 
         start_ts = int(now - current_time)
         end_ts = int(start_ts + dur)
-        abs_state_text = f"{display_author} • AudioNode" # You should replace "AudioNode" with your own branding or remove it entirely if you prefer a cleaner look.
+        abs_state_text = f"{display_author}" # You should replace "AudioNode" with your own branding or remove it entirely if you prefer a cleaner look.
         # logic for which client icon to show
         client = session["deviceInfo"].get("clientName")
         match client:
@@ -438,8 +450,6 @@ def main():
     last_printed = None
 
     global DISCORD_TITLE
-    print("discord title")
-    print(DISCORD_TITLE)
     if DISCORD_TITLE not in ALLOWED_DISCORD_TITLES:
         print("INVALID DISCORD TITLE FOUND. SETTING DETAILS INSTEAD. PLEASE VALIDATE")
         DISCORD_TITLE = 'details'
@@ -459,9 +469,12 @@ def main():
                 last_printed = activity_key
 
             timestamps = {"start": data['start'], "end": data['end']}
-            name = DISCORD_TITLE
+            name_key = DISCORD_TITLE
+            name = data[name_key]
+            if data["artist"]:
+                name = name + " • " + data["artist"]
             activity = {
-                "name": data[name],
+                "name": name,
                 "details": data['details'],
                 "state": data['state'],
                 "assets": {
