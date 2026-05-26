@@ -536,7 +536,6 @@ class Gateway():
             with self.state_lock:
                 self.state = 2
             logger.info("Trying to reconnect")
-            print("Trying to reconnect")
         try:
             code = None
             if self.resumable:
