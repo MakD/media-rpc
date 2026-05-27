@@ -25,7 +25,8 @@ def startup_checks():
 
 
 def run_loop():
-    last_printed = None
+    # initiate as offline???? maybe not needed since we set offline on gateway each update, but maybe good for the initial connection???
+    last_printed = "None"
     last_start_time = None
     activity_key = None
     while True:

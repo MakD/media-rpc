@@ -572,7 +572,6 @@ class Gateway:
         if not self.wait:
             with self.state_lock:
                 self.state = 2
-            print("Trying to reconnect")
         try:
             code = None
             if self.resumable:

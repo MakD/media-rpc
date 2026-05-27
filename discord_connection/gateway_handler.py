@@ -53,7 +53,7 @@ class DiscordGatewayHandler:
         if self.gateway:
             print("Disconnecting from gateway...")
             try:
-                self.gateway.update_presence("online", activities=[], afk=False)
+                self.gateway.update_presence("idle", activities=[], afk=True)
                 self.gateway.disconnect_ws()
             except Exception as e:
                 print(f"Error disconnecting from gateway: {e}")
@@ -63,7 +63,7 @@ class DiscordGatewayHandler:
         if activity is None:
             if self.gateway and self.gateway.get_state() == 1:
                 try:
-                    self.gateway.update_presence("online", activities=[], afk=True)
+                    self.gateway.update_presence("idle", activities=[], afk=True)
                     return
                 except Exception as e:
                     print(f"Error clearing gateway presence: {e}")
@@ -78,9 +78,9 @@ class DiscordGatewayHandler:
             try:
 
                 self.gateway.update_presence(
-                    "online",
+                    "idle",
                     activities=[activity],
-                    afk=False,
+                    afk=True,
                 )
             except Exception as e:
                 print(f"Error updating gateway presence: {e}")
