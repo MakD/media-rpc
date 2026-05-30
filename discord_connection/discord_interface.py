@@ -24,11 +24,6 @@ class DiscordHandler:
             print("connecting via RPC...")
             self.handler = DiscordRPCHandler(self.DISCORD_CLIENT_ID)
         elif self.connection_method == "Gateway":
-            if self.handler:
-                try:
-                    self.handler.disconnect()
-                except Exception:
-                    pass
             self.handler = DiscordGatewayHandler(self.DISCORD_TOKEN, self.DISCORD_CLIENT_ID)
 
     def discord_connector_startup_check(self):
@@ -43,7 +38,6 @@ class DiscordHandler:
                 f"Missing required environment variable: DISCORD_TOKEN for gateway mode"
             )
         if not self.USE_GATEWAY:
-            print("Using Discord RPC")
             while True:
                 try:
                     self.handler = DiscordRPCHandler(self.DISCORD_CLIENT_ID)
@@ -53,7 +47,6 @@ class DiscordHandler:
                     print(f"Failed to connect via RPC. Is Discord running? error: {e}. Retrying in 5s...")
                     time.sleep(5)
         elif self.USE_GATEWAY:
-            print("Using Discord Gateway")
             while True:
                 try:
                     self.handler = DiscordGatewayHandler(self.DISCORD_TOKEN, self.DISCORD_CLIENT_ID)

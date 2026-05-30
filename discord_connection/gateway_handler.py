@@ -53,6 +53,7 @@ class DiscordGatewayHandler:
         if self.gateway:
             print("Disconnecting from gateway...")
             try:
+                self.gateway.run = False
                 self.gateway.update_presence("idle", activities=[], afk=True)
                 self.gateway.disconnect_ws()
             except Exception as e:

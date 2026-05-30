@@ -1,7 +1,6 @@
 import base64
 import gc
 import http.client
-import logging
 import random
 import socket
 import ssl
@@ -29,7 +28,6 @@ DEFAULT_INTENTS = 50364033
 QOS_HEARTBEAT = True
 QOS_PAYLOAD = {"ver": 26, "active": True, "reason": "foregrounded"}
 
-logger = logging.getLogger(__name__)
 status_unpacker = struct.Struct("!H")
 
 class Gateway:
@@ -124,10 +122,8 @@ class Gateway:
             try:
                 self.ws.settimeout(timeout)
                 self.ws.close(status=status)
-                logger.info(f"Disconnected with status code {status}")
                 print(f"Disconnected with status code {status}")
-            except Exception as e:
-                logger.warning("Error closing websocket:", e)
+            except Exception:
                 print("Error closing websocket:")
             finally:
                 self.ws = None
@@ -154,7 +150,6 @@ class Gateway:
                 connection = http.client.HTTPSConnection(self.host, 443)
                 connection.sock = proxy_sock
             else:
-                logger.warning("Invalid proxy, continuing without proxy")
                 print("Invalid proxy, continuing without proxy")
                 connection = http.client.HTTPSConnection(self.host, 443)
         else:
@@ -166,7 +161,6 @@ class Gateway:
             connection.request("GET", "/api/v9/gateway")
         except (socket.gaierror, TimeoutError):
             connection.close()
-            logger.warning("No internet connection. Exiting...")
             raise SystemExit("No internet connection. Exiting...")
         response = connection.getresponse()
         if response.status == 200:
@@ -175,9 +169,6 @@ class Gateway:
             self.gateway_url = json.loads(data)["url"]
         else:
             connection.close()
-            logger.error(
-                f"Failed to get gateway url. Response code: {response.status}. Exiting..."
-            )
             raise SystemExit(
                 f"Failed to get gateway url. Response code: {response.status}. Exiting..."
             )
@@ -255,7 +246,7 @@ class Gateway:
 
     def receiver(self):
         """Receive and handle all traffic from gateway, should be run in a thread"""
-        logger.debug("Receiver started")
+        print("Receiver started")
         self.resumable = False
         while self.run and not self.wait:
             try:
@@ -273,7 +264,6 @@ class Gateway:
                 status = status_unpacker.unpack(data[0:2])[0]
                 reason = data[2:].decode("utf-8", "replace")
                 if status not in (1000, 1001):
-                    logger.warning(f"Gateway status code: {status}, reason: {reason}")
                     print(f"Gateway status code: {status}, reason: {reason}")
                 if status == 4004:
                     self.run = False
@@ -293,13 +283,9 @@ class Gateway:
                     response = None
                     opcode = None
             except Exception as e:
-                logger.warning(f"Receiver error: {e}")
                 print(f"Receiver error: {e}")
                 self.resumable = True
                 break
-            logger.debug(
-                f"Received: opcode={opcode}, optext={response["t"] if (response and "t" in response and response["t"] and "LIST" not in response["t"]) else 'None'}"
-            )
             # debug_events
             # if response.get("t"):
             #     debug.save_json(response, f"{response["t"]}.json", False)
@@ -403,26 +389,23 @@ class Gateway:
                     self.set_my_user_data(data)
 
             elif opcode == 7:
-                logger.info("Host requested reconnect")
                 print("Host requested reconnect")
                 self.resumable = True
                 break
 
             elif opcode == 9:
                 if response["d"]:
-                    logger.info("Session invalidated, reconnecting")
                     print("Session invalidated, reconnecting")
                     break
 
         with self.state_lock:
             self.state = 0
-        logger.debug("Receiver stopped")
+        print("Receiver stopped")
         self.reconnect_requested = True
         self.heartbeat_running = False
 
     def send_heartbeat(self):
         """Send heartbeat to gateway, if response is not received, triggers reconnect, should be run in a thread"""
-        logger.debug(f"Heartbeater started, interval={self.heartbeat_interval/1000} s")
         self.heartbeat_running = True
         self.heartbeat_received = True
         # wait for ready event for some time
@@ -432,9 +415,6 @@ class Gateway:
         )  # 5x heartbeat interval, minimum 15 seconds
         while not self.ready:
             if elapsed_time >= timeout:
-                logger.error(
-                    "Ready event could not be processed in time, probably because of too many servers. Exiting..."
-                )
                 raise SystemExit(
                     "Ready event could not be processed in time, probably because of too many servers. Exiting..."
                 )
@@ -465,7 +445,6 @@ class Gateway:
                         },
                     }
                 )
-                logger.debug("Sent Time Spent event")
                 time_spent_event_time = int(time.time())
             if (
                 time.time() - heartbeat_sent_time >= heartbeat_interval_rand
@@ -484,17 +463,10 @@ class Gateway:
                 else:
                     self.send({"op": 1, "d": self.sequence})
                 heartbeat_sent_time = int(time.time())
-                logger.debug("Sent heartbeat")
                 if not self.heartbeat_received:
                     self.heartbeat_missed_count += 1
-                    logger.warning(
-                        f"Heartbeat reply not received ({self.heartbeat_missed_count}/3)"
-                    )
-                    print(
-                        f"Heartbeat reply not received ({self.heartbeat_missed_count}/3)"
-                    )
+                    print(f"Heartbeat reply not received ({self.heartbeat_missed_count}/3)")
                     if self.heartbeat_missed_count >= 3:
-                        logger.warning("Too many missed heartbeats, reconnecting")
                         print("Too many missed heartbeats, reconnecting")
                         self.resumable = True
                         break
@@ -508,7 +480,6 @@ class Gateway:
             time.sleep(1)
         with self.state_lock:
             self.state = 0
-        logger.debug("Heartbeater stopped")
         self.reconnect_requested = True
 
     def authenticate(self):
@@ -545,7 +516,6 @@ class Gateway:
         try:
             self.connect_ws(resume=True)
         except websocket._exceptions.WebSocketBadStatusException:
-            logger.info("Failed to resume connection")
             print("Failed to resume connection")
             return 9
         _ = self.zlib_decompress(self.ws.recv())
@@ -560,10 +530,9 @@ class Gateway:
         self.send(payload)
         try:
             op = json.loads(self.zlib_decompress(self.ws.recv()))["op"]
-            logger.debug(f"Connection resumed with code {op}")
+            print(f"Connection resumed with code {op}")
             return op or True
         except json.JSONDecodeError:
-            logger.info("Failed to resume connection")
             print("Failed to resume connection")
             return 9
 
@@ -578,7 +547,7 @@ class Gateway:
                 self.resumable = False
                 code = self.resume()
             if code == 9 or code is None:
-                logger.debug("Restarting connection")
+                print("Restarting connection")
                 if self.ws:
                     self.ws.close(timeout=0)  # this will stop receiver
                 time.sleep(1)  # so receiver ends before opening new socket
@@ -603,11 +572,11 @@ class Gateway:
                 self.heartbeat_thread.start()
             with self.state_lock:
                 self.state = 1
-            logger.info("Connection established")
-            print("Connection established")
+            print("Connection established after reconnect")
+            self.update_presence(status="idle", activities=[], afk=True)     
+            self.update_presence('idle', activities=self.my_status["activities"], afk=True)  # update presence after reconnect
         except websocket._exceptions.WebSocketAddressException:
             if not self.wait:  # if not running from wait_oline
-                logger.warning("No internet connection")
                 print("No internet connection")
                 self.ws.close()
                 threading.Thread(target=self.wait_online, daemon=True, args=()).start()
@@ -641,6 +610,9 @@ class Gateway:
             return  # spacebar_fix - gateway returns error if this event is sent
 
         all_activities = []
+        self.my_status = {
+            "activities": activities or [],
+            }
         if custom_status:
             all_activities.append(
                 {
@@ -655,7 +627,7 @@ class Gateway:
             for activity in activities:
                 all_activities.append(activity)
         print(
-            f"Updating presence: status={status}, custom_status={custom_status}, activities={activities}, afk={afk}"
+            f"Updating presence: status={status}, activities={activities}, afk={afk}"
         )
 
         payload = {
@@ -668,7 +640,6 @@ class Gateway:
             },
         }
         self.send(payload)
-        logger.debug("Updated presence")
 
     def get_ready(self):
         """Return wether gateway processed entire READY event"""
@@ -681,7 +652,6 @@ class Gateway:
         try:
             return self.inflator.decompress(data)
         except zlib.error as e:
-            logger.error(f"zlib error: {e}")
             print(f"zlib error: {e}")
             return None
     
