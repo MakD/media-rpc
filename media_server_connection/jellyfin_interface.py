@@ -157,7 +157,7 @@ class JellyfinServer:
                 "name": title + " • " + artist_name,
             }
         except Exception as e:
-            print(f"[DEBUG] Error: {e}")
+            print(f"[DEBUG] Failed to fetch data from Jellyfin server: {e}")
             return None
 
     def get_jellyfin_cover(self,base_url, item_id, api_key, title, year, item_type):

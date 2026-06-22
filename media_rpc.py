@@ -41,7 +41,6 @@ def run_loop():
             last_start_time = None
             connected = True
         data = mediaServerInterface.fetch_data()
-    
         if data:
             small_icon = data["client_image"]
             activity_key = (data["details"], data["state"])
@@ -59,6 +58,7 @@ def run_loop():
             last_start_time = data["start"]
 
             timestamps = {"start": data["start"], "end": data["end"]}
+
             activity = {
                 "name": data["name"],
                 "details": data["details"],
