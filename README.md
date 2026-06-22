@@ -387,3 +387,7 @@ Every 15 seconds, the script polls your media servers for active sessions. If so
 **Jellyfin not showing**
 - Paused sessions are intentionally ignored
 - Check that your `JELLYFIN_API_KEY` is valid and your server is reachable
+
+**Navidrome not showing**
+- Assumed Paused sessions are intentionally ignored
+- make sure your server is reachable and passwords are correct
