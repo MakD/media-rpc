@@ -33,6 +33,7 @@ https://hub.docker.com/repository/docker/simoneklundh/media-rpc
 
 - Jellyfin support - movies and TV shows with cover art (falls back to TMDB)
 - Audiobookshelf support - audiobooks and podcasts with chapter tracking
+- Navidrome support - music, with server based album images
 - **Privacy-focused** - filters by your specific User ID so your friends' streams don't show on your profile
 - **Secure Configuration** - uses a `.env` file to keep your API tokens and IDs safe
 - Cover art fetched directly from your media servers
@@ -84,6 +85,13 @@ services:
       - DEFAULT_JELLYFIN_SERVER_NAME= Custom Server Name
       - DEFAULT_AUDIOBOOKSHELF_SERVER_NAME= Custom Server Name
       - JELLYFIN_IGNORE_LIBRARIES=Library1,Library2,Library3
+      # Navidrome variables, only necessary if using Navidrome, not needed for Jellyfin or AudioBookShelf
+      - NAVIDROME_USERNAME=admin
+      - NAVIDROME_PASSWORD=adminpassword
+      - NAVIDROME_SERVER=https://music.domain.tld
+      - DEFAULT_NAVIDROME_SERVER_NAME=Navidrome
+      # Navidrome salt, should be a random string, used for hashing passwords, keep it secret
+      - NAVIDROME_SALT=averygoodsaltthatshouldberandomandkeptsecret
       - USE_GATEWAY=true
 ```
 [How to get the variables](#Configuration)  
@@ -139,8 +147,16 @@ DEFAULT_JELLYFIN_SERVER_NAME=jellfin_server_name
 DEFAULT_AUDIOBOOKSHELF_SERVER_NAME=audiobookshelf_server_name 
 #optional, defaults to empty list
 JELLYFIN_IGNORE_LIBRARIES=library1,library2
-# true => use gateway, false => use rpc (requires discord running on your computer)
+# Navidrome variables, only necessary if using Navidrome, not needed for Jellyfin or AudioBookShelf
+NAVIDROME_USERNAME=admin
+NAVIDROME_PASSWORD=adminpassword
+NAVIDROME_SERVER=https://music.domain.tld
+# optional.  defaults to Navidrome
+DEFAULT_NAVIDROME_SERVER_NAME=Navidrome
+# Navidrome salt, should be a random string, used for hashing passwords, keep it secret
+NAVIDROME_SALT=averygoodsaltthatshouldberandomandkeptsecret
 # defaults to false
+# true => use gateway, false => use rpc (requires discord running on your computer)
 USE_GATEWAY=true
 ```
 **5. Run media-rpc:**
@@ -185,6 +201,14 @@ DEFAULT_JELLYFIN_SERVER_NAME=jellfin_server_name
 DEFAULT_AUDIOBOOKSHELF_SERVER_NAME=audiobookshelf_server_name 
 #optional, defaults to empty list
 JELLYFIN_IGNORE_LIBRARIES=library1,library2
+# Navidrome variables, only necessary if using Navidrome, not needed for Jellyfin or AudioBookShelf
+NAVIDROME_USERNAME=admin
+NAVIDROME_PASSWORD=adminpassword
+NAVIDROME_SERVER=https://music.domain.tld
+# optional.  defaults to Navidrome
+DEFAULT_NAVIDROME_SERVER_NAME=Navidrome
+# Navidrome salt, should be a random string, used for hashing passwords, keep it secret
+NAVIDROME_SALT=averygoodsaltthatshouldberandomandkeptsecret
 # defaults to false. true => use the gateway, no discord client needed. requires DISCORD_TOKEN
 USE_GATEWAY=true
 ```
@@ -244,6 +268,10 @@ JELLYFIN_IGNORE_LIBRARIES=Bollywood,Kids
 ### Gateway
 To use the discord gateway instead of rpc, add
 USE_GATEWAY=true and the Discord Token to the .env
+
+### Navidrome salt
+just add some string.
+NAVIDROME_SALT=averygoodsaltthatshouldberandomandkeptsecret
 ---
 
 ## Cover Art Setup
@@ -359,3 +387,7 @@ Every 15 seconds, the script polls your media servers for active sessions. If so
 **Jellyfin not showing**
 - Paused sessions are intentionally ignored
 - Check that your `JELLYFIN_API_KEY` is valid and your server is reachable
+
+**Navidrome not showing**
+- Assumed Paused sessions are intentionally ignored
+- make sure your server is reachable and passwords are correct

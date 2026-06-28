@@ -25,23 +25,22 @@ def startup_checks():
 
 
 def run_loop():
-    # initiate as offline???? maybe not needed since we set offline on gateway each update, but maybe good for the initial connection???
     last_printed = "None"
     last_start_time = None
     activity_key = None
+    connected = True
     while True:
-        if not discord_handler.is_connected():
-            print("Connection lost. Reconnecting...")
-            try:
-                discord_handler.disconnect()
-            except:
-                print("Error during disconnect, continuing with reconnect...")
-                pass
-            discord_handler.connect()
+        while not discord_handler.is_connected():
+            if connected:
+                print("Connection lost, waiting for reconnect...")
+                connected = False
+            time.sleep(1)
+        if not connected:
+            print("Reconnected.")
             last_printed = None
             last_start_time = None
+            connected = True
         data = mediaServerInterface.fetch_data()
-    
         if data:
             small_icon = data["client_image"]
             activity_key = (data["details"], data["state"])
@@ -59,6 +58,7 @@ def run_loop():
             last_start_time = data["start"]
 
             timestamps = {"start": data["start"], "end": data["end"]}
+
             activity = {
                 "name": data["name"],
                 "details": data["details"],
