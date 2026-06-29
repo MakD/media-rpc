@@ -113,11 +113,11 @@ class JellyfinServer:
                 case "AFinity":
                     small_icon = "https://raw.githubusercontent.com/MakD/AFinity/refs/heads/master/screenshots/Logo/ic_launcher_round_mdpi.webp"
                 case "Streamyfin":
-                    small_icon = "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/webp/streamyfin.webp"
+                    small_icon = "https://raw.githubusercontent.com/streamyfin/streamyfin/refs/heads/develop/assets/images/icon-ios-plain.png"
                 case "Jellify":
                     small_icon = "https://i.ibb.co/zVCxQFJN/jellify.png"
                 case "Pelagica":
-                    small_icon = "https://raw.githubusercontent.com/KartoffelChipss/pelagica/refs/heads/main/frontend/public/favicons/web-app-manifest-512x512.png"
+                    small_icon = "https://raw.githubusercontent.com/PelagicaApp/pelagica/refs/heads/main/frontend/public/favicons/web-app-manifest-512x512.png"
                 case "Kodi":
                     small_icon = (
                         "https://images.icon-icons.com/1495/PNG/512/kodi_102964.png"
@@ -125,7 +125,7 @@ class JellyfinServer:
                 case "Wholphin":
                     small_icon = "https://raw.githubusercontent.com/damontecres/Wholphin/main/app/src/main/res/mipmap-xxxhdpi/ic_launcher_round.webp"
                 case "Moonfin":
-                    small_icon = "https://raw.githubusercontent.com/Moonfin-Client/Mobile-Desktop/main/assets/icons/moonfin.png"
+                    small_icon = "https://raw.githubusercontent.com/Moonfin-Client/Moonfin-Core/main/assets/icons/moonfin.png"
                 case _:
                     # default to jf
                     small_icon = "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcR9hELYbRA5IB6-ci3AzpkvOTJ3BAq6-_LmMg&s"
