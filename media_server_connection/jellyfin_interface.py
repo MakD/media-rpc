@@ -117,7 +117,7 @@ class JellyfinServer:
                 case "Jellify":
                     small_icon = "https://i.ibb.co/zVCxQFJN/jellify.png"
                 case "Pelagica":
-                    small_icon = "https://raw.githubusercontent.com/KartoffelChipss/pelagica/refs/heads/main/frontend/public/favicons/web-app-manifest-512x512.png"
+                    small_icon = "https://raw.githubusercontent.com/PelagicaApp/pelagica/refs/heads/main/frontend/public/favicons/web-app-manifest-512x512.png"
                 case "Kodi":
                     small_icon = (
                         "https://images.icon-icons.com/1495/PNG/512/kodi_102964.png"
