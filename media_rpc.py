@@ -25,18 +25,19 @@ def startup_checks():
 
 
 def run_loop():
-    connected = True
     while True:
-        while not discord_handler.is_connected():
-            if connected:
-                print("Connection lost, waiting for reconnect...")
-                connected = False
-            time.sleep(1)
-        if not connected:
-            print("Reconnected.")
-            connected = True
         data = mediaServerInterface.fetch_data()
+
         if data:
+            if discord_handler.USE_GATEWAY:
+                if not discord_handler.is_connected():
+                    print("Media detected, reconnecting to Discord...")
+                    discord_handler.connect()
+            else:
+                while not discord_handler.is_connected():
+                    print("Connection lost, waiting for Discord...")
+                    time.sleep(1)
+
             small_icon = data["client_image"]
             print(
                 f"\n[{data.get('text', 'RPC')}] {data['details']} — {data['state']}"
@@ -57,7 +58,13 @@ def run_loop():
             }
             discord_handler.update_presence(activity)
         else:
-            discord_handler.clear_presence()
+            if discord_handler.USE_GATEWAY:
+                if discord_handler.is_connected():
+                    print("No media playing, disconnecting from Discord...")
+                    discord_handler.disconnect()
+            else:
+                discord_handler.clear_presence()
+
         time.sleep(15)
 
 
