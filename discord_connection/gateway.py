@@ -34,7 +34,7 @@ class Gateway:
     """Methods for fetching and sending data to Discord gateway through websocket"""
 
     def __init__(
-        self, token, host, client_prop, user_agent, proxy=None, capablities=None
+        self, token, host, client_prop, user_agent, proxy=None, capablities=None, status="idle"
     ):
         self.inflator = zlib.decompressobj()
         if host:
@@ -61,6 +61,7 @@ class Gateway:
         self.client_prop = client_prop
         self.init_time = time.time() * 1000
         self.token = token
+        self.status = status
         self.proxy = urllib.parse.urlsplit(proxy)
         self.run = True
         self.wait = False
@@ -573,7 +574,11 @@ class Gateway:
             with self.state_lock:
                 self.state = 1
             print("Connection established after reconnect")
-            self.update_presence('idle', activities=self.my_status.get("activities", []), afk=True)  # update presence after reconnect
+            self.update_presence(
+                self.status,
+                activities=self.my_status.get("activities", []),
+                afk=True,
+            )  # update presence after reconnect
         except websocket._exceptions.WebSocketAddressException:
             if not self.wait:  # if not running from wait_oline
                 print("No internet connection")
@@ -667,4 +672,3 @@ class Gateway:
         except zlib.error as e:
             print(f"zlib error: {e}")
             return None
-    

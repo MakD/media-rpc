@@ -49,7 +49,6 @@ class JellyfinServer:
                     s
                     for s in res
                     if "NowPlayingItem" in s
-                    and not s["PlayState"].get("IsPaused")
                     and s.get("UserId") == self.user_id
                 ),
                 None,
@@ -166,6 +165,7 @@ class JellyfinServer:
             return {
                 "type": discord_type,
                 "status": status,
+                "is_paused": session["PlayState"].get("IsPaused", False),
                 "details": title,
                 "state": state_text,
                 "start": int((time.time() - prog) * 1000),

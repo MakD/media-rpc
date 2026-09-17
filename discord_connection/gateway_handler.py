@@ -1,4 +1,5 @@
 # Gateway connection
+import os
 import sys
 import time
 
@@ -11,12 +12,15 @@ mp_url_cache = {}
 
 
 class DiscordGatewayHandler:
-
     def __init__(self, token, client_id):
         print("Connecting via Gateway...")
-        self.gateway = self.setup_gateway(token)
         self.token = token
         self.client_id = client_id
+        self.status = os.getenv("GATEWAY_STATUS", "idle").lower()
+        if self.status not in {"online", "idle", "dnd", "invisible"}:
+            print(f"Invalid GATEWAY_STATUS '{self.status}', using 'idle'.")
+            self.status = "idle"
+        self.gateway = self.setup_gateway(token)
 
     def setup_gateway(self, DISCORD_TOKEN):
         client_prop = client_properties.get_default_properties()
@@ -25,8 +29,14 @@ class DiscordGatewayHandler:
 
         while True:
             try:
-                gw = Gateway(DISCORD_TOKEN, None, client_prop_gateway, user_agent)
 
+                gw = Gateway(
+                    DISCORD_TOKEN,
+                    None,
+                    client_prop_gateway,
+                    user_agent,
+                    status=self.status,
+                )
                 gw.connect()
                 print("Connecting to Discord gateway...")
                 while not gw.get_ready():
@@ -64,7 +74,11 @@ class DiscordGatewayHandler:
         if activity is None:
             if self.gateway and self.gateway.get_state() == 1:
                 try:
-                    self.gateway.update_presence("idle", activities=[], afk=True)
+                    self.gateway.update_presence(
+                        "idle",
+                        activities=[],
+                        afk=True,
+                    )
                     return
                 except Exception as e:
                     print(f"Error clearing gateway presence: {e}")
@@ -80,9 +94,8 @@ class DiscordGatewayHandler:
             activity["assets"]["large_image"] = self.resolve_mp_url(large_image)
         if self.gateway and self.gateway.get_state() == 1:
             try:
-
                 self.gateway.update_presence(
-                    "idle",
+                    self.status,
                     activities=[activity],
                     afk=True,
                 )
