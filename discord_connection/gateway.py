@@ -577,7 +577,7 @@ class Gateway:
             self.update_presence(
                 self.status,
                 activities=self.my_status.get("activities", []),
-                afk=False,
+                afk=True,
             )  # update presence after reconnect
         except websocket._exceptions.WebSocketAddressException:
             if not self.wait:  # if not running from wait_oline

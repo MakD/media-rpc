@@ -22,7 +22,6 @@ class DiscordGatewayHandler:
             self.status = "idle"
         self.gateway = self.setup_gateway(token)
 
-
     def setup_gateway(self, DISCORD_TOKEN):
         client_prop = client_properties.get_default_properties()
         client_prop_gateway = client_properties.add_for_gateway(client_prop)
@@ -98,7 +97,7 @@ class DiscordGatewayHandler:
                 self.gateway.update_presence(
                     self.status,
                     activities=[activity],
-                    afk=False,
+                    afk=True,
                 )
             except Exception as e:
                 print(f"Error updating gateway presence: {e}")
