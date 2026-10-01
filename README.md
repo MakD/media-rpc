@@ -38,6 +38,7 @@ https://hub.docker.com/repository/docker/simoneklundh/media-rpc
 - **Secure Configuration** - uses a `.env` file to keep your API tokens and IDs safe
 - Cover art fetched directly from your media servers
 - Elapsed and remaining time timestamps
+- Optional links and buttons to public pages about what's playing (IMDb, TMDB, MusicBrainz, Audible, Open Library, Apple Podcasts), plus up to two custom buttons
 - Library blacklist to hide specific Jellyfin libraries (cached for performance)
 - Auto-reconnect if Discord connection drops
 - Local cover cache to avoid redundant requests
@@ -98,6 +99,12 @@ services:
       # Navidrome salt, should be a random string, used for hashing passwords, keep it secret
       - NAVIDROME_SALT=averygoodsaltthatshouldberandomandkeptsecret
       - USE_GATEWAY=true
+      # optional, links and buttons in the presence, see Configuration
+      - USE_MEDIA_LINKS=false
+      - DISCORD_BUTTON_1_LABEL=
+      - DISCORD_BUTTON_1_URL=
+      - DISCORD_BUTTON_2_LABEL=
+      - DISCORD_BUTTON_2_URL=
 ```
 [How to get the variables](#Configuration)  
 
@@ -174,6 +181,13 @@ NAVIDROME_SALT=averygoodsaltthatshouldberandomandkeptsecret
 # defaults to false
 # true => use gateway, false => use rpc (requires discord running on your computer)
 USE_GATEWAY=true
+# optional, defaults to false. true => link the title and add buttons to public pages about what's playing
+USE_MEDIA_LINKS=false
+# optional, up to 2 custom buttons (label max 32 characters, url must start with http:// or https://)
+DISCORD_BUTTON_1_LABEL=
+DISCORD_BUTTON_1_URL=
+DISCORD_BUTTON_2_LABEL=
+DISCORD_BUTTON_2_URL=
 ```
 **5. Run media-rpc:**
 ```bash
@@ -236,6 +250,13 @@ DEFAULT_NAVIDROME_SERVER_NAME=Navidrome
 NAVIDROME_SALT=averygoodsaltthatshouldberandomandkeptsecret
 # defaults to false. true => use the gateway, no discord client needed. requires DISCORD_TOKEN
 USE_GATEWAY=true
+# optional, defaults to false. true => link the title and add buttons to public pages about what's playing
+USE_MEDIA_LINKS=false
+# optional, up to 2 custom buttons (label max 32 characters, url must start with http:// or https://)
+DISCORD_BUTTON_1_LABEL=
+DISCORD_BUTTON_1_URL=
+DISCORD_BUTTON_2_LABEL=
+DISCORD_BUTTON_2_URL=
 ```
 
 **4. Run manually to test:**
@@ -321,6 +342,24 @@ USE_GATEWAY=true and the Discord Token to the .env
 ### Navidrome salt
 just add some string.
 NAVIDROME_SALT=averygoodsaltthatshouldberandomandkeptsecret
+
+### Links and buttons (optional)
+Set `USE_MEDIA_LINKS=true` to make the title clickable and add buttons that open public pages about what's playing, when your media server has the ids for it:
+
+| Server | Links |
+| --- | --- |
+| Jellyfin | IMDb and TMDB for movies, IMDb for episodes, MusicBrainz for music |
+| Audiobookshelf | Audible (ASIN) and Open Library (ISBN) for books, Apple Podcasts (iTunes ID) for podcasts |
+| Navidrome | MusicBrainz |
+
+You can also add up to two custom buttons with a label (max 32 characters) and an `http://` or `https://` url:
+```bash
+DISCORD_BUTTON_1_LABEL=My Letterboxd
+DISCORD_BUTTON_1_URL=https://letterboxd.com/yourname
+```
+Discord shows at most two buttons, custom buttons come first and media links fill the remaining slots. Discord does not show the buttons on your own profile, check them from another account.
+
+Links are visible to everyone who can see your presence, so media links only point to those public sites and never to your media server.
 ---
 
 ## Cover Art Setup

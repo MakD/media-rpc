@@ -85,6 +85,12 @@ class DiscordGatewayHandler:
         large_image = activity["assets"].get("large_image")
         if large_image and large_image.startswith("http"):
             activity["assets"]["large_image"] = self.resolve_mp_url(large_image)
+        buttons = activity.get("buttons")
+        if buttons:
+            # the gateway takes the button labels and urls separately, and buttons need an application
+            activity["buttons"] = [button["label"] for button in buttons]
+            activity["metadata"] = {"button_urls": [button["url"] for button in buttons]}
+            activity["application_id"] = self.client_id
         if self.gateway and self.gateway.get_state() == 1:
             try:
 
