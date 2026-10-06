@@ -9,6 +9,7 @@ load_dotenv(env_path)
 
 from cache_handler import load_caches
 from discord_connection.discord_interface import DiscordHandler
+from discord_connection.presence_links import add_links
 from media_server_connection.media_server_interface import MediaServerInterface
 
 discord_handler = None
@@ -59,6 +60,7 @@ def run_loop():
             activity["assets"] = {k: v for k, v in activity["assets"].items() if v}
             if not activity["state"]:
                 del activity["state"]
+            add_links(activity, data.get("links"))
             discord_handler.update_presence(activity)
         else:
             discord_handler.clear_presence()

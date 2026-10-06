@@ -4,6 +4,7 @@ import time
 import requests
 
 from cache_handler import get_library_cache_key, get_poster_cache_key, save_library_cache, set_library_cache_key, set_poster_cache_key
+from .media_links import media_link, media_links
 
 
 
@@ -190,10 +191,20 @@ class JellyfinServer:
                 "client": client,
                 "artist": artist_name,
                 "name": name ,
+                "links": self.get_media_links(item),
             }
         except Exception as e:
             print(f"[DEBUG] Failed to fetch data from Jellyfin server: {e}")
             return None
+
+    def get_media_links(self, item):
+        provider_ids = {k.lower(): v for k, v in (item.get("ProviderIds") or {}).items()}
+        if item.get("Type") == "Audio":
+            return media_links(media_link("musicbrainz_release", provider_ids.get("musicbrainzalbum")))
+        return media_links(
+            media_link("imdb", provider_ids.get("imdb")),
+            media_link("tmdb_movie", provider_ids.get("tmdb")) if item.get("Type") == "Movie" else None,
+        )
 
     def get_jellyfin_cover(self,base_url, item_id, title, year, item_type):
         cache_key = f"jellyfin_{item_id}"

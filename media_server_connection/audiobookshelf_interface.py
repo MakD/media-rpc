@@ -9,6 +9,7 @@ from cache_handler import (
     set_cover_cache_key,
     set_poster_cache_key,
 )
+from .media_links import media_link, media_links
 
 USE_CHAPTER_TITLE = os.getenv("USE_CHAPTER_TITLE", "False").lower() == "true"
 DEFAULT_AUDIOBOOKSHELF_SERVER_NAME = os.getenv(
@@ -93,6 +94,7 @@ class ABS_Server:
                 item_details.get("mediaType") == "podcast" or "podcastTitle" in meta
             )
 
+            item_metadata = item_details.get("media", {}).get("metadata") or meta
             if is_podcast:
                 episode_id = session.get("episodeId")
                 episodes = item_details.get("media", {}).get("episodes", [])
@@ -108,11 +110,18 @@ class ABS_Server:
                 episode_num = episode.get("episode")
                 if season and episode_num:
                     line1 = f"{line1} (S{season}:E{episode_num})"
+
+                links = media_links(media_link("apple_podcasts", item_metadata.get("itunesId")))
             else:
                 line1 = self.get_chapter_name(item_details, current_time)
                 if not line1:
                     line1 = meta.get("title") or "Unknown Chapter"
                 line2 = display_title
+
+                links = media_links(
+                    media_link("audible", str(item_metadata.get("asin") or "").upper()),
+                    media_link("openlibrary", str(item_metadata.get("isbn") or "").replace("-", "")),
+                )
 
             cover = self.get_abs_cover(item_id)
             if not cover:
@@ -189,6 +198,7 @@ class ABS_Server:
                 "client": client,
                 "artist": display_author,
                 "name": display_title + " • " + display_author,
+                "links": links,
             }
         except Exception as e:
             title = (
