@@ -17,6 +17,7 @@ class JellyfinServer:
         self.user_id = user_id
         self.ignore_libraries = ignore_libraries
         self.tmdb_api_key = tmdb_api_key
+        self.last_fetch_failed = False
 
     def get_show_year(self, base_url, series_id, api_key, user_id):
         try:
@@ -37,10 +38,15 @@ class JellyfinServer:
     
     
     def fetch_data(self):
+        self.last_fetch_failed = False
         try:
-            res = requests.get(
-                self.server_url, headers={"Authorization": f'MediaBrowser Token={self.api_key}'}, timeout=1
-            ).json()
+            response = requests.get(
+                self.server_url,
+                headers={"Authorization": f'MediaBrowser Token={self.api_key}'},
+                timeout=1,
+            )
+            response.raise_for_status()
+            res = response.json()
             if not res:
                 return None
             session = next(
@@ -106,9 +112,11 @@ class JellyfinServer:
                             print(
                                 f"[DEBUG] Ancestor Check Failed: {parents_resp.status_code}"
                             )
+                            self.last_fetch_failed = True
                             return None
 
                     except Exception as e:
+                        self.last_fetch_failed = True
                         print(f"[DEBUG] Blacklist Error: {e}")
                         return None
 
@@ -180,6 +188,7 @@ class JellyfinServer:
                 "name": title + " • " + artist_name,
             }
         except Exception as e:
+            self.last_fetch_failed = True
             print(f"[DEBUG] Failed to fetch data from Jellyfin server: {e}")
             return None
 

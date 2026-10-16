@@ -25,11 +25,28 @@ def startup_checks():
 
 
 def run_loop():
+    idle_disconnect = (
+        discord_handler.USE_GATEWAY
+        and os.getenv("GATEWAY_IDLE_DISCONNECT", "false").strip().lower()
+        in {"1", "true", "yes", "on"}
+    )
     paused_since = None
     playing_confirmations = 0
+    pause_presence_sent = False
+
+    if idle_disconnect:
+        print("Gateway idle-disconnect mode enabled (5-minute paused grace period).")
 
     while True:
         data = mediaServerInterface.fetch_data()
+
+        if (
+            not data
+            and getattr(mediaServerInterface, "last_fetch_failed", False)
+        ):
+            print("[DEBUG] Media-server fetch failed; preserving playback state.")
+            time.sleep(15)
+            continue
 
         if data:
             is_paused = data.get("is_paused", False)
@@ -39,7 +56,7 @@ def run_loop():
                 time.sleep(15)
                 continue
 
-            if discord_handler.USE_GATEWAY and paused_since is not None:
+            if idle_disconnect and paused_since is not None:
                 if is_paused:
                     playing_confirmations = 0
                 else:
@@ -56,9 +73,10 @@ def run_loop():
                     playing_confirmations = 0
 
             if is_paused and discord_handler.USE_GATEWAY:
-                if paused_since is None:
-                    paused_since = time.monotonic()
-                    playing_confirmations = 0
+                if not pause_presence_sent:
+                    if idle_disconnect:
+                        paused_since = time.monotonic()
+                        playing_confirmations = 0
 
                     if discord_handler.is_connected():
                         activity = {
@@ -77,21 +95,32 @@ def run_loop():
                             },
                         }
                         discord_handler.update_presence(activity)
+                        pause_presence_sent = True
 
-                    print("Media paused, starting 5-minute Discord grace period...")
+                    if idle_disconnect:
+                        print(
+                            "Media paused, starting 5-minute Discord grace period..."
+                        )
 
-                if time.monotonic() - paused_since >= 300:
-                    if discord_handler.is_connected():
-                        print("Media paused for 5 minutes, disconnecting from Discord...")
-                        discord_handler.disconnect()
-                    time.sleep(15)
-                    continue
+                if idle_disconnect:
+                    if (
+                        paused_since is not None
+                        and time.monotonic() - paused_since >= 300
+                    ):
+                        if discord_handler.is_connected():
+                            print(
+                                "Media paused for 5 minutes, disconnecting from Discord..."
+                            )
+                            discord_handler.disconnect()
+                        time.sleep(15)
+                        continue
 
                 time.sleep(15)
                 continue
 
             paused_since = None
             playing_confirmations = 0
+            pause_presence_sent = False
 
             if discord_handler.USE_GATEWAY:
                 if not discord_handler.is_connected():
@@ -124,8 +153,9 @@ def run_loop():
         else:
             paused_since = None
             playing_confirmations = 0
+            pause_presence_sent = False
 
-            if discord_handler.USE_GATEWAY:
+            if idle_disconnect:
                 if discord_handler.is_connected():
                     print("No media playing, disconnecting from Discord...")
                     discord_handler.disconnect()
