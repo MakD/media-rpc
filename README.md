@@ -310,7 +310,7 @@ it should look something like this `MTIzNDU2Nzg5MDEyMzQ1Njc4.GxKp2A.aBcDeFgHiJkL
 
 ### Jellyfin API Key
 1. In Jellyfin, go to **Dashboard → API Keys**
-2. Create a new key and paste it into `JELLYFIN_API_KEY`
+2. Create a new key and paste it into `JELLYFIN_API_KEY` in your `.env` file.
 
 ### Jellyfin User ID (Required for Privacy)
 To ensure Discord only shows what *you* are watching and ignores other users on your server:
